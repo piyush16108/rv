@@ -189,7 +189,7 @@ let devoteesByArati = {
 async function fetchSheetData() {
 
   try {
-    console.log("Categorized data!!!");
+
     const response = await fetch(SHEET_URL);
     const text = await response.text();
 
@@ -330,7 +330,7 @@ function copyMessage() {
 // =============================
 // START
 // =============================
-console.log("fetchSheetData");
+
 fetchSheetData();
 
 </script>
