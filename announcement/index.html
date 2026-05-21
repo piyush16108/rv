@@ -151,18 +151,35 @@ const aratis = [
 
 
 // =============================
-// SAMPLE FALLBACK DATA
+// FALLBACK DATA STRUCTURE
 // =============================
 
-let devotees = [
-  "Sridhar Madhav pr",
-  "Radha Nath pr",
-  "Sundareshwar pr",
-  "Naik Shring pr",
-  "Sahadev Pran pr",
-  "Girinayak pr",
-  "Sachijivan pr"
-];
+let devoteesByArati = {
+  "Tulsi Arati": [
+    "Sridhar Madhav pr",
+    "Radha Nath pr"
+  ],
+
+  "Tulsi Worship": [
+    "Radha Nath pr",
+    "Sachijivan pr"
+  ],
+
+  "Guru Puja": [
+    "Sundareshwar pr",
+    "Girinayak pr"
+  ],
+
+  "Sandhya Arati": [
+    "Naik Shring pr",
+    "Girinayak pr"
+  ],
+
+  "Mangal Arati": [
+    "Sahadev Pran pr",
+    "Premanjana pr"
+  ]
+};
 
 
 // =============================
@@ -170,36 +187,51 @@ let devotees = [
 // =============================
 
 async function fetchSheetData() {
+
   try {
+
     const response = await fetch(SHEET_URL);
     const text = await response.text();
 
-    const rows = text.split("\n");
+    const rows = text.trim().split("\n");
 
-    const names = [];
+    // FIRST ROW = HEADERS
+    const headers = rows[0]
+      .split(",")
+      .map(h => h.trim());
 
-    rows.forEach(row => {
-      const cols = row.split(",");
+    // RESET OBJECT
+    devoteesByArati = {};
 
-      cols.forEach(col => {
-        const clean = col.trim();
-
-        if (
-          clean &&
-          clean.length > 2 &&
-          !names.includes(clean)
-        ) {
-          names.push(clean);
-        }
-      });
+    headers.forEach(header => {
+      devoteesByArati[header] = [];
     });
 
-    devotees = names.sort();
+    // REMAINING ROWS
+    for (let i = 1; i < rows.length; i++) {
+
+      const cols = rows[i].split(",");
+
+      headers.forEach((header, index) => {
+
+        const value = cols[index]?.trim();
+
+        if (
+          value &&
+          value.length > 1 &&
+          !devoteesByArati[header].includes(value)
+        ) {
+          devoteesByArati[header].push(value);
+        }
+      });
+    }
 
     buildDropdowns();
 
   } catch (err) {
+
     console.log("Using fallback data", err);
+
     buildDropdowns();
   }
 }
@@ -232,10 +264,15 @@ function buildDropdowns() {
 
     select.appendChild(defaultOption);
 
+    // ONLY RELEVANT DEVOTEES
+    const devotees = devoteesByArati[arati] || [];
+
     devotees.forEach(devotee => {
+
       const option = document.createElement("option");
       option.value = devotee;
       option.innerText = devotee;
+
       select.appendChild(option);
     });
 
@@ -263,7 +300,8 @@ function updateMessage() {
 
     const value = document.getElementById(arati)?.value || "";
 
-    message += `• ${arati}: ${value}\n`;
+    message += `• ${arati}: ${value}
+`;
   });
 
   document.getElementById("messageBox").value = message;
