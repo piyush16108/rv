@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arati Schedule</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f3ea;
+      margin: 0;
+      padding: 16px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 24px;
+      color: #7a4b00;
+    }
+
+    .card {
+      background: white;
+      padding: 16px;
+      border-radius: 14px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    select {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      background: white;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      line-height: 1.6;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button, .wa-btn {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button {
+      background: #7a4b00;
+      color: white;
+    }
+
+    .wa-btn {
+      background: #25D366;
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .footer-note {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 13px;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <h1>Arati Schedule</h1>
+
+  <div id="dropdowns"></div>
+
+  <div class="card">
+    <label>WhatsApp Message</label>
+
+    <textarea id="messageBox" readonly></textarea>
+
+    <div class="btn-group">
+      <button onclick="copyMessage()">Copy Message</button>
+
+      <a
+        id="whatsappBtn"
+        class="wa-btn"
+        target="_blank"
+      >WhatsApp</a>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    Hare Krishna 🙏
+  </div>
+
+</div>
+
+<script>
+
+// =============================
+// PASTE YOUR PUBLISHED CSV URL
+// =============================
+
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQPxzAh1V6IgwSVy4uz0xpwtOwmsnSZ-xyg4A6Xl3MTXmzFaWeM0t-AyZfHtjeP5MIf_LmK6R58r45P/pub?gid=0&single=true&output=csv";
+
+
+// =============================
+// ARATI TYPES
+// =============================
+
+const aratis = [
+  "Tulsi Arati",
+  "Tulsi Worship",
+  "Guru Puja",
+  "Sandhya Arati",
+  "Mangal Arati"
+];
+
+
+// =============================
+// SAMPLE FALLBACK DATA
+// =============================
+
+let devotees = [
+  "Sridhar Madhav pr",
+  "Radha Nath pr",
+  "Sundareshwar pr",
+  "Naik Shring pr",
+  "Sahadev Pran pr",
+  "Girinayak pr",
+  "Sachijivan pr"
+];
+
+
+// =============================
+// FETCH GOOGLE SHEET DATA
+// =============================
+
+async function fetchSheetData() {
+  try {
+    const response = await fetch(SHEET_URL);
+    const text = await response.text();
+
+    const rows = text.split("\n");
+
+    const names = [];
+
+    rows.forEach(row => {
+      const cols = row.split(",");
+
+      cols.forEach(col => {
+        const clean = col.trim();
+
+        if (
+          clean &&
+          clean.length > 2 &&
+          !names.includes(clean)
+        ) {
+          names.push(clean);
+        }
+      });
+    });
+
+    devotees = names.sort();
+
+    buildDropdowns();
+
+  } catch (err) {
+    console.log("Using fallback data", err);
+    buildDropdowns();
+  }
+}
+
+
+// =============================
+// BUILD DROPDOWNS
+// =============================
+
+function buildDropdowns() {
+
+  const container = document.getElementById("dropdowns");
+
+  container.innerHTML = "";
+
+  aratis.forEach(arati => {
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const label = document.createElement("label");
+    label.innerText = arati;
+
+    const select = document.createElement("select");
+    select.id = arati;
+
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.innerText = "Select devotee";
+
+    select.appendChild(defaultOption);
+
+    devotees.forEach(devotee => {
+      const option = document.createElement("option");
+      option.value = devotee;
+      option.innerText = devotee;
+      select.appendChild(option);
+    });
+
+    select.addEventListener("change", updateMessage);
+
+    card.appendChild(label);
+    card.appendChild(select);
+
+    container.appendChild(card);
+  });
+
+  updateMessage();
+}
+
+
+// =============================
+// UPDATE WHATSAPP MESSAGE
+// =============================
+
+function updateMessage() {
+
+  let message = "";
+
+  aratis.forEach(arati => {
+
+    const value = document.getElementById(arati)?.value || "";
+
+    message += `• ${arati}: ${value}\n`;
+  });
+
+  document.getElementById("messageBox").value = message;
+
+  const encoded = encodeURIComponent(message);
+
+  document.getElementById("whatsappBtn")
+    .href = `https://wa.me/?text=${encoded}`;
+}
+
+
+// =============================
+// COPY MESSAGE
+// =============================
+
+function copyMessage() {
+
+  const text = document.getElementById("messageBox");
+
+  navigator.clipboard.writeText(text.value);
+
+  alert("Message copied!");
+}
+
+
+// =============================
+// START
+// =============================
+
+fetchSheetData();
+
+</script>
+
+</body>
+</html>
