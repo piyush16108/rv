@@ -134,7 +134,7 @@
 // PASTE YOUR PUBLISHED CSV URL
 // =============================
 
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQPxzAh1V6IgwSVy4uz0xpwtOwmsnSZ-xyg4A6Xl3MTXmzFaWeM0t-AyZfHtjeP5MIf_LmK6R58r45P/pub?gid=0&single=true&output=csv";
+const API_URL = "https://script.google.com/macros/s/AKfycbz40Z3DRaFTtKmLVC9OpiXA9Y-Ye-KwJfnIzTnImrx_Vfyxuriki-ibr-Wb7b3Etieh/exec";
 
 
 // =============================
@@ -190,47 +190,15 @@ async function fetchSheetData() {
 
   try {
 
-    const response = await fetch(SHEET_URL);
-    const text = await response.text();
+    const response = await fetch(API_URL);
 
-    const rows = text.split("\n");
-
-    // FIRST ROW = HEADERS
-    const headers = rows[0]
-      .split(",")
-      .map(h => h.trim());
-
-    // RESET OBJECT
-    devoteesByArati = {};
-
-    headers.forEach(header => {
-      devoteesByArati[header] = [];
-    });
-
-    // REMAINING ROWS
-    for (let i = 1; i < rows.length; i++) {
-
-      const cols = rows[i].split(",");
-
-      headers.forEach((header, index) => {
-
-        const value = cols[index]?.trim();
-
-        if (
-          value &&
-          value.length > 1 &&
-          !devoteesByArati[header].includes(value)
-        ) {
-          devoteesByArati[header].push(value);
-        }
-      });
-    }
+    devoteesByArati = await response.json();
 
     buildDropdowns();
 
   } catch (err) {
 
-    console.log("Using fallback data", err);
+    console.error(err);
 
     buildDropdowns();
   }
