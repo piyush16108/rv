@@ -1,6 +1,6 @@
 const API="https://script.google.com/macros/s/AKfycbzR0PSW1q6mVTJ4qxefSMuRv04IbhvqcvJy2JfRfR21nEHoJak5CBFrdcEtGmejaV0z9Q/exec";
 const groups={Vegetable:"🥬 Vegetables",Herb:"🌿 Herbs",Fruit:"🍎 Fruits"};
-const state=JSON.parse(localStorage.getItem("purchaseQty")||"{}"); 
+const state=JSON.parse(localStorage.getItem("purchaseQty")||"{}");
 
 fetch(API)
 .then(r=>r.json())
